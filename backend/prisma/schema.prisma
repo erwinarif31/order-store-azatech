@@ -1,18 +1,96 @@
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
 }
 
 model User {
-  id           String   @id @default(uuid()) @db.Uuid
-  name         String
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+    id           String   @id @default(uuid()) @db.Uuid
+    name         String
+    email        String   @unique
+    passwordHash String   @map("password_hash")
+    createdAt    DateTime @default(now()) @map("created_at")
+    updatedAt    DateTime @updatedAt @map("updated_at")
 
-  @@map("users")
+    @@map("users")
+}
+
+model Product {
+    id          Int      @id @default(autoincrement())
+    productCode String   @unique @map("product_code") @db.VarChar(50)
+    name        String   @db.VarChar(200)
+    price       Decimal  @db.Decimal(15, 0)
+    stock       Int      @default(0)
+    createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+    updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+    orderItems OrderItem[]
+
+    @@map("products")
+}
+
+model Customer {
+    id        Int      @id @default(autoincrement())
+    name      String   @db.VarChar(120)
+    email     String?  @db.VarChar(254)
+    phone     String?  @db.VarChar(30)
+    createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+    updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+    orders Order[]
+
+    @@map("customers")
+}
+
+enum OrderStatus {
+    PENDING
+    PAID
+    CANCELLED
+}
+
+model Order {
+    id Int @id @default(autoincrement())
+    orderNumber String @unique @map("order_number")
+    customerId Int @map("customer_id")
+    customer Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+    status OrderStatus @default(PENDING)
+    subtotal Decimal @db.Decimal(30, 2)
+    discountAmount Decimal @map("discount_amount") @db.Decimal(30, 2)
+    grandTotal Decimal @map("grand_total") @db.Decimal(30, 2)
+    createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+    updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+    idempotencyKey String? @unique @map("idempotency_key") @db.VarChar(200)
+    payloadHash String? @map("payload_hash") @db.VarChar(64)
+    items OrderItem[]
+
+    @@index([customerId])
+    @@index([status, createdAt])
+    @@index([createdAt, id])
+    @@map("orders")
+}
+
+model OrderItem {
+    id Int @id @default(autoincrement())
+    orderId Int @map("order_id")
+    order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+    productId Int @map("product_id")
+    product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+    productCode String @map("product_code") @db.VarChar(50)
+    productName String @map("product_name") @db.VarChar(200)
+    quantity Int
+    unitPrice Decimal @map("unit_price") @db.Decimal(15, 0)
+    subtotal Decimal @db.Decimal(30, 2)
+
+    @@unique([orderId, productId])
+    @@index([productId])
+    @@map("order_items")
+}
+
+model InvoiceCounter {
+    day String @id @db.VarChar(8)
+    lastNumber Int @map("last_number")
+
+    @@map("invoice_counters")
 }

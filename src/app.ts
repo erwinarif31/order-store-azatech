@@ -3,7 +3,7 @@ import cors from "cors";
 import { config } from "./config";
 import { authMiddleware } from "./middleware/auth.middleware";
 import { errorMiddleware } from "./middleware/error.middleware";
-import { authRouter, loginRouter } from "./modules/auth/auth.controller";
+import { authRouter, loginRouter } from "./modules/auth/auth.routes";
 import { AppError } from "./shared/error";
 
 export const app = express();

@@ -1,1 +1,6 @@
 /ARCHITECTURE.md
+
+.env
+.env.*
+!.env.example
+!/compose.yaml

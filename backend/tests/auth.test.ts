@@ -114,8 +114,8 @@ describe("auth API with PostgreSQL", () => {
     });
 
     it("protects other API routes before returning 404", async () => {
-        expect((await request(app).get("/api/products")).status).toBe(401);
-        const response = await request(app).get("/api/products").auth(token, { type: "bearer" });
+        expect((await request(app).get("/api/not-a-route")).status).toBe(401);
+        const response = await request(app).get("/api/not-a-route").auth(token, { type: "bearer" });
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ success: false, message: "Route not found", errors: {} });
     });
